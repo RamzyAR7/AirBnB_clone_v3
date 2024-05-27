@@ -7,7 +7,6 @@ from models.amenity import Amenity
 from models.city import City
 from models.place import Place
 from os import getenv
-from models.state import State
 
 
 @app_views.route('/places/<place_id>/amenities',
