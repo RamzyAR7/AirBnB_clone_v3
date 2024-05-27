@@ -6,6 +6,9 @@ from api.v1.views import app_views
 from flask import jsonify, abort, request
 from models import storage
 from models.place import Place
+from models.amenity import Amenity
+from models.city import City
+from models.state import State
 
 
 @app_views.route('/cities/<city_id>/places', methods=['GET'])
@@ -95,3 +98,57 @@ def edit_places(place_id):
             setattr(place, key, value)
     place.save()
     return jsonify(place.to_dict()), 200
+
+
+@app_views.route('/places_search', methods=['POST'], strict_slashes=False)
+def places_search():
+    """
+    retrieves all Place objects depending
+    of the JSON in the body of the request
+    """
+    req = request.get_json()
+    if req is None:
+        abort(400, "Not a JSON")
+
+    req = request.get_json()
+    if req is None or (
+        req.get('states') is None and
+        req.get('cities') is None and
+        req.get('amenities') is None
+    ):
+        obj_places = storage.all(Place)
+        return jsonify([obj.to_dict() for obj in obj_places.values()])
+
+    places = set()
+
+    if req.get('states'):
+        obj_states = {storage.get(State, id) for id in req.get('states')}
+
+        for obj_state in obj_states:
+            for obj_city in obj_state.cities:
+                for obj_place in obj_city.places:
+                    places.add(obj_place)
+
+    if req.get('cities'):
+        obj_cities = {storage.get(City, id) for id in req.get('cities')}
+        obj_cities.discard(None)
+        for obj_city in obj_cities:
+            for obj_place in obj_city.places:
+                places.add(obj_place)
+
+    if not places:
+        places = storage.all(Place).values()
+
+    if req.get('amenities'):
+        obj_am = [storage.get(Amenity, id) for id in req.get('amenities')]
+        conf_places = []
+        for place in places:
+            conf_places.append(place)
+            amenities = place.amenities
+            for amenity in obj_am:
+                if amenity not in amenities:
+                    conf_places.pop(-1)
+                    break
+        places = conf_places
+    places = [obj.to_dict() for obj in places]
+    return jsonify(places)
