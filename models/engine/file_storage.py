@@ -57,3 +57,12 @@ class FileStorage:
     def close(self):
         """calls reload"""
         self.reload()
+
+    def get(self, cls, id):
+        """Returns object based on class and ID or None if not found"""
+        return self.__objects["{}".format(cls.__name__)
+                              + "." + "{}".format(id)]
+
+    def count(self, cls=None):
+        """to count the number of objects in storage"""
+        return len(self.all(cls))
