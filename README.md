@@ -11,7 +11,6 @@ This project is part of the Holberton School curriculum and is the continuation 
 - Language: Python
 - OS: Ubuntu 20.04 LTS
 - Style guidelines: [PEP 8 (version 2.8.0)](https://www.python.org/dev/peps/pep-0008/)
-- Testing: `unittest` module
 
 ## Learning Objectives
 
